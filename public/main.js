@@ -1,58 +1,55 @@
+// document.getElementById("tasks")
+function appendTasks(tasks) {
+  let taskList = document.querySelector("#tasks")
+  tasks.forEach(task => {
+    taskList.innerHTML += `<li>${task.description}</li>`;
+  })
+}
+
 function getTasks() {
   fetch('/api/v1/tasks')
     .then(response => {
       if(response.ok) {
         return response.json();
       } else {
-        let error = new Error("Error in fetch: GET '/api/v1/tasks'")
+        let error = new Error("Whoops something went bad")
         throw(error)
       }
     })
-    .then(json => appendTasks(json.tasks))
-    .catch(error => {
-      document.querySelector('#error').innerHTML += error.message
-    })
+    .then(body => appendTasks(body.tasks))
+    .catch(error => console.log(error.message))
 }
 
+function postTask(event) {
+  event.preventDefault()
+  let description = document.getElementById('description');
+  let body = {
+    task: { description: description.value }
+  }
 
-function appendTasks(tasks) {
-  let taskList = document.querySelector("#tasks");
-  tasks.forEach(task => {
-    taskList.innerHTML += `<li>${task.description}</li>`
+  let json_body = JSON.stringify(body)
+  fetch('/api/v1/tasks', {
+    method: 'post',
+    body: json_body
+  })
+  .then(response => {
+    if(response.ok) {
+      appendTask(body.task)
+      description.value = ''
+    }
   })
 }
 
 function appendTask(task) {
-  let taskList = document.querySelector("#tasks");
-  taskList.innerHTML += `<li>${task.description}</li>`
+  let taskList = document.querySelector("#tasks")
+  taskList.innerHTML += `<li>${task.description}</li>`;
 }
 
-function postTask(event) {
-  event.preventDefault();
-  let description = document.querySelector("#description");
-  body = {
-    task: { description: description.value }
-  };
-  let json_body = JSON.stringify(body)
+let button = document.getElementById("submit-button")
+button.addEventListener("click", postTask)
 
-  fetch('/api/v1/tasks', { method: 'post', body: json_body })
-  .then(response => {
-    if(response.ok) {
-      appendTask(body.task)
-      description.value = ""
-    } else {
-      let error = new Error("Error in fetch: POST '/api/v1/tasks'")
-      throw(error)
-    }
-  })
-  .catch(error => {
-    document.querySelector('#error').innerHTML += error.message
-  })
-}
 
-// As soon as the page loads
+
+
+// run on page load
 getTasks()
-
-document
-  .querySelector("#new-task-submit-button")
-  .addEventListener("click", postTask);
